@@ -553,13 +553,6 @@ class DanceAlgorithm(AlgorithmBase):
             'R_Arm_qd': target_dof_vel[17:21].tolist()
         }
         
-        # 打印期望角度、速度、kp、kd
-        print("[DanceAlgorithm] Control commands:")
-        print(f"  Desired positions (XML order, {len(target_dof_pos)} values): {target_dof_pos}")
-        print(f"  Desired velocities (XML order, {len(target_dof_vel)} values): {target_dof_vel}")
-        print(f"  Kp (stiffness, {len(stiffness)} values): {stiffness}")
-        print(f"  Kd (damping, {len(damping)} values): {damping}")
-        
         # 更新命令缓存（不直接发送，由500Hz发送循环发送）
         with self.latest_command_lock:
             self.latest_command = {
@@ -681,4 +674,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 

@@ -10,7 +10,7 @@ import threading
 import time
 
 # 添加LCM Python模块路径
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../lcm-types/python'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), './lcm-types/python'))
 
 try:
     import lcm
