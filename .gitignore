@@ -1,6 +1,6 @@
 # QUICK_PUSH.sh - 不上传推送脚本
 QUICK_PUSH.sh
-
+QUICK_PUSH_GITHUB.sh
 # Build directories
 build/
 cmake-build-*/
