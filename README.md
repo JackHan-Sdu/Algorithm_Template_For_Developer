@@ -1,77 +1,81 @@
-# Yobotics HumanoidE3 算法部署模板
+# Yobotics HumanoidE3 Algorithm Deployment Template
 
-## 视频教程
+<div align="right">
+  <a href="README.md">English</a> | <a href="README_zh.md">中文</a>
+</div>
+
+## Video Tutorial
 
 <video width="800" controls>
   <source src="How to develop E3?.mp4" type="video/mp4">
-  您的浏览器不支持视频播放。请下载视频文件查看：<a href="How to develop E3?.mp4">How to develop E3?.mp4</a>
+  Your browser does not support video playback. Please download the video file to view: <a href="How to develop E3?.mp4">How to develop E3?.mp4</a>
 </video>
 
-本仓库提供了用于 Yobotics HumanoidE3 机器人外部算法部署的开发模板框架。开发者可以基于此框架快速实现自定义控制算法，并通过 LCM 与机器人状态机进行通信。
+This repository provides a development template framework for deploying external algorithms on the Yobotics HumanoidE3 robot. Developers can quickly implement custom control algorithms based on this framework and communicate with the robot's state machine via LCM.
 
-## 目录结构
+## Directory Structure
 
 ```
 Algorithm_Template_For_Developer/
-├── README.md                    # 本文档
-├── __init__.py                  # 包初始化文件
-├── algorithm_base.py            # 算法基类（AlgorithmBase）
-├── lcm_interface.py             # LCM通信接口（LCMInterface）
-└── dance_algorithm/             # 跳舞算法示例
-    ├── config.yaml              # 算法配置文件
-    ├── run_algorithm.py         # 算法执行脚本（DanceAlgorithm实现）
-    ├── mujoco_simulator.py      # MuJoCo仿真器（用于算法验证）
-    ├── HumanActornet.onnx       # ONNX策略模型
-    └── dataset/                 # 数据集目录
-        └── E3Getup350.npz       # 动作序列数据集
+├── README.md                    # This document
+├── __init__.py                  # Package initialization file
+├── algorithm_base.py            # Algorithm base class (AlgorithmBase)
+├── lcm_interface.py             # LCM communication interface (LCMInterface)
+└── dance_algorithm/             # Dancing algorithm example
+    ├── config.yaml              # Algorithm configuration file
+    ├── run_algorithm.py         # Algorithm execution script (DanceAlgorithm implementation)
+    ├── mujoco_simulator.py      # MuJoCo simulator (for algorithm verification)
+    ├── HumanActornet.onnx       # ONNX policy model
+    └── dataset/                 # Dataset directory
+        └── E3Getup350.npz       # Motion sequence dataset
 ```
 
-## 核心组件
+## Core Components
 
-### 1. AlgorithmBase（算法基类）
+### 1. AlgorithmBase (Algorithm Base Class)
 
-所有自定义算法都应继承 `AlgorithmBase` 类。该类提供了以下功能：
+All custom algorithms should inherit from the `AlgorithmBase` class. This class provides the following features:
 
-- **策略模型加载**：支持 ONNX 和 PyTorch（.pt）模型，自动从 ONNX metadata 读取配置
-- **LCM通信管理**：自动处理 LCM 订阅和发布
-- **双线程执行架构**：
-  - 策略推理线程：按配置频率运行（如 50Hz）
-  - LCM发送线程：固定 500Hz 高频发送控制命令
-- **开发模式控制**：自动处理开发模式的开始和结束
-- **模型预热**：使用真实状态进行预热推理，检测 action 异常
-- **线程安全**：所有状态访问都经过锁保护
+- **Policy Model Loading**: Supports ONNX and PyTorch (.pt) models, automatically reads configuration from ONNX metadata
+- **LCM Communication Management**: Automatically handles LCM subscription and publishing
+- **Dual-Thread Execution Architecture**:
+  - Policy inference thread: Runs at configured frequency (e.g., 50Hz)
+  - LCM send thread: Fixed 500Hz high-frequency control command sending
+- **Development Mode Control**: Automatically handles development mode start and end
+- **Model Warmup**: Uses real state for warmup inference, detects action anomalies
+- **Thread Safety**: All state access is protected by locks
 
-#### 必须实现的方法
+#### Required Methods to Implement
 
-- `compute_observation(state)`: 根据状态计算观测向量
-- `process_action(state, action)`: 处理动作并发送控制命令（通过更新 `latest_command`）
+- `compute_observation(state)`: Compute observation vector based on state
+- `process_action(state, action)`: Process action and send control command (by updating `latest_command`)
 
-#### 可选重写的方法
+#### Optional Methods to Override
 
-- `on_development_mode_start()`: 开发模式开始时的回调
-- `on_development_mode_end()`: 开发模式结束时的回调
+- `on_development_mode_start()`: Callback when development mode starts
+- `on_development_mode_end()`: Callback when development mode ends
 
-### 2. LCMInterface（LCM通信接口）
+### 2. LCMInterface (LCM Communication Interface)
 
-封装了所有 LCM 相关的通信功能：
+Encapsulates all LCM-related communication functions:
 
-- 订阅机器人状态消息（`development_state_t`）
-- 发布控制命令消息（`development_command_t`）
-- 状态缓存和线程安全的访问接口
-- 支持状态消息回调
+- Subscribe to robot state messages (`development_state_t`)
+- Publish control command messages (`development_command_t`)
+- State caching and thread-safe access interface
+- Supports state message callbacks
 
-### 3. DanceAlgorithm（示例算法）
+### 3. DanceAlgorithm (Example Algorithm)
 
-基于 `deploy_mujoco_1Step.py` 实现的跳舞算法示例，展示了：
+A dancing algorithm example implemented based on `deploy_mujoco_1Step.py`, demonstrating:
 
-- 从数据集加载动作序列
-- 使用 ONNX 模型进行动作生成
-- 完整的观测计算（包括 anchor orientation、yaw对齐等）
-- 关节顺序映射（模型顺序 ↔ XML顺序）
+- Loading motion sequences from datasets
+- Using ONNX models for action generation
+- Complete observation computation (including anchor orientation, yaw alignment, etc.)
+- Joint order mapping (model order ↔ XML order)
 
-## 快速开始
+## Quick Start
 
-### 1. 创建新算法文件夹
+### 1. Create New Algorithm Folder
 
 ```bash
 cd Algorithm_Template_For_Developer
@@ -79,18 +83,18 @@ mkdir your_algorithm_name
 cd your_algorithm_name
 ```
 
-### 2. 创建配置文件和算法脚本
+### 2. Create Configuration File and Algorithm Script
 
-复制示例算法的配置文件模板：
+Copy the configuration file template from the example algorithm:
 
 ```bash
 cp ../dance_algorithm/config.yaml .
 cp ../dance_algorithm/run_algorithm.py ./your_algorithm_name.py
 ```
 
-### 3. 实现你的算法类
+### 3. Implement Your Algorithm Class
 
-编辑 `your_algorithm_name.py`，继承 `AlgorithmBase` 并实现必要的方法：
+Edit `your_algorithm_name.py`, inherit from `AlgorithmBase` and implement the necessary methods:
 
 ```python
 #!/usr/bin/env python3
@@ -98,7 +102,7 @@ import sys
 import os
 import numpy as np
 
-# 添加父目录到路径
+# Add parent directory to path
 _parent_dir = os.path.join(os.path.dirname(__file__), '..')
 if _parent_dir not in sys.path:
     sys.path.insert(0, _parent_dir)
@@ -106,36 +110,36 @@ if _parent_dir not in sys.path:
 from algorithm_base import AlgorithmBase
 
 class YourAlgorithm(AlgorithmBase):
-    """你的算法类"""
+    """Your algorithm class"""
     
     def compute_observation(self, state):
         """
-        计算观测向量
+        Compute observation vector
         
         Args:
-            state: development_state_t 消息对象
+            state: development_state_t message object
             
         Returns:
-            np.ndarray: 观测向量（shape: [num_obs]）
+            np.ndarray: Observation vector (shape: [num_obs])
         """
         obs = np.zeros(self.model_params['num_obs'], dtype=np.float32)
-        # 你的观测计算逻辑
+        # Your observation computation logic
         # ...
         return obs
     
     def process_action(self, state, action):
         """
-        处理动作并更新控制命令
+        Process action and update control command
         
         Args:
-            state: development_state_t 消息对象
-            action: np.ndarray, 模型输出的动作向量（shape: [num_actions]）
+            state: development_state_t message object
+            action: np.ndarray, action vector output by model (shape: [num_actions])
         """
-        # 计算目标关节位置
+        # Calculate target joint positions
         target_pos = action * self.model_params['action_scale'] + \
                      self.model_params['default_joint_pos']
         
-        # 组织关节命令
+        # Organize joint commands
         joint_positions = {
             'L_Leg_q': target_pos[0:6].tolist(),
             'R_Leg_q': target_pos[6:12].tolist(),
@@ -160,7 +164,7 @@ class YourAlgorithm(AlgorithmBase):
             'R_Arm_kd': self.model_params['joint_damping'][17:21].tolist()
         }
         
-        # 更新命令缓存（由500Hz发送循环发送）
+        # Update command cache (sent by 500Hz send loop)
         with self.latest_command_lock:
             self.latest_command = {
                 'enable_development_mode': True,
@@ -186,155 +190,155 @@ if __name__ == "__main__":
     main()
 ```
 
-### 4. 修改配置文件
+### 4. Modify Configuration File
 
-编辑 `config.yaml`，配置策略路径、LCM通道、执行频率等参数（详见"配置文件说明"部分）。
+Edit `config.yaml` to configure policy path, LCM channels, execution frequency, and other parameters (see "Configuration File Reference" section).
 
-### 5. 运行算法
+### 5. Run Algorithm
 
 ```bash
 python3 your_algorithm_name.py --config config.yaml
 ```
 
-## 配置文件说明
+## Configuration File Reference
 
-### 策略配置（`policy`）
+### Policy Configuration (`policy`)
 
 ```yaml
 policy:
-  type: "onnx"  # 或 "pt" (PyTorch)
-  path: "./HumanActornet.onnx"  # 策略文件路径（相对或绝对路径）
-  read_metadata: true  # 是否从ONNX模型的metadata读取配置
-  warmup_count: 500  # 模型预热次数（使用真实状态进行推理，检测action异常）
-  action_threshold: 200.0  # Action异常检测阈值
+  type: "onnx"  # or "pt" (PyTorch)
+  path: "./HumanActornet.onnx"  # Policy file path (relative or absolute)
+  read_metadata: true  # Whether to read configuration from ONNX model metadata
+  warmup_count: 500  # Model warmup count (using real state for inference, detecting action anomalies)
+  action_threshold: 200.0  # Action anomaly detection threshold
 ```
 
-### LCM配置（`lcm`）
+### LCM Configuration (`lcm`)
 
 ```yaml
 lcm:
-  url: ""  # LCM URL（空字符串表示使用默认）
-  state_channel: "E3_development_state"  # 订阅的状态通道
-  command_channel: "E3_development_command"  # 发布的命令通道
-  robot_id: "E3"  # 机器人ID（必须与状态机配置一致）
+  url: ""  # LCM URL (empty string means use default)
+  state_channel: "E3_development_state"  # State subscription channel
+  command_channel: "E3_development_command"  # Command publishing channel
+  robot_id: "E3"  # Robot ID (must match state machine configuration)
 ```
 
-### 执行配置（`execution`）
+### Execution Configuration (`execution`)
 
 ```yaml
 execution:
-  frequency: 50.0  # 策略推理频率（Hz），建议50Hz（20ms周期）
-  lcm_send_frequency: 500.0  # LCM发送频率（Hz），固定500Hz
-  auto_start: true  # 是否自动开始（收到状态消息后自动开始开发模式）
-  auto_end: true  # 是否自动结束（算法执行完成后自动结束开发模式）
-  max_execution_time: 0.0  # 最大执行时间（秒），0表示无限制
+  frequency: 50.0  # Policy inference frequency (Hz), recommended 50Hz (20ms period)
+  lcm_send_frequency: 500.0  # LCM send frequency (Hz), fixed at 500Hz
+  auto_start: true  # Auto start (automatically start development mode after receiving state message)
+  auto_end: true  # Auto end (automatically end development mode after algorithm execution completes)
+  max_execution_time: 0.0  # Maximum execution time (seconds), 0 means unlimited
 ```
 
-### 强化学习模式配置（`rl_mode`）
+### Reinforcement Learning Mode Configuration (`rl_mode`)
 
 ```yaml
 rl_mode:
-  is_rl_mode: true  # true: 状态机对踝关节进行扭矩计算，kp/kd清零
-                    # false: 直接使用外部传过来的kp/kd/期望角度/期望速度/期望扭矩
+  is_rl_mode: true  # true: State machine performs torque calculation for ankle joints, kp/kd cleared
+                    # false: Directly use kp/kd/desired angle/desired velocity/desired torque from external source
 ```
 
-### 模型参数（`model_params`）
+### Model Parameters (`model_params`)
 
-如果 `read_metadata=false`，需要手动配置：
+If `read_metadata=false`, manual configuration is required:
 
 ```yaml
 model_params:
-  num_actions: 21  # 动作维度
-  num_obs: 114  # 观测维度
-  default_joint_pos: [0.0, ...]  # 默认关节位置（21维）
-  joint_stiffness: [100.0, ...]  # 关节刚度Kp（21维）
-  joint_damping: [10.0, ...]  # 关节阻尼Kd（21维）
-  action_scale: [0.25, ...]  # 动作缩放因子（21维）
+  num_actions: 21  # Action dimension
+  num_obs: 114  # Observation dimension
+  default_joint_pos: [0.0, ...]  # Default joint positions (21 dimensions)
+  joint_stiffness: [100.0, ...]  # Joint stiffness Kp (21 dimensions)
+  joint_damping: [10.0, ...]  # Joint damping Kd (21 dimensions)
+  action_scale: [0.25, ...]  # Action scale factors (21 dimensions)
 ```
 
-### 调试配置（`debug`）
+### Debug Configuration (`debug`)
 
 ```yaml
 debug:
-  print_config: false  # 是否打印配置文件内容
-  print_metadata: false  # 是否打印ONNX模型metadata内容
+  print_config: false  # Whether to print configuration file contents
+  print_metadata: false  # Whether to print ONNX model metadata contents
 ```
 
-## 关节顺序
+## Joint Order
 
-标准关节顺序（21维）：
-- **左腿（6维）**: hip_pitch, hip_roll, hip_yaw, knee, ankle_pitch, ankle_roll
-- **右腿（6维）**: hip_pitch, hip_roll, hip_yaw, knee, ankle_pitch, ankle_roll
-- **腰部（1维）**: waist
-- **左臂（4维）**: shoulder_pitch, shoulder_roll, shoulder_yaw, elbow
-- **右臂（4维）**: shoulder_pitch, shoulder_roll, shoulder_yaw, elbow
+Standard joint order (21 dimensions):
+- **Left Leg (6 dims)**: hip_pitch, hip_roll, hip_yaw, knee, ankle_pitch, ankle_roll
+- **Right Leg (6 dims)**: hip_pitch, hip_roll, hip_yaw, knee, ankle_pitch, ankle_roll
+- **Waist (1 dim)**: waist
+- **Left Arm (4 dims)**: shoulder_pitch, shoulder_roll, shoulder_yaw, elbow
+- **Right Arm (4 dims)**: shoulder_pitch, shoulder_roll, shoulder_yaw, elbow
 
-如果模型使用不同的关节顺序，需要在 `compute_observation` 和 `process_action` 中进行映射。
+If the model uses a different joint order, mapping is required in `compute_observation` and `process_action`.
 
-## ONNX模型Metadata
+## ONNX Model Metadata
 
-框架支持从 ONNX 模型的 metadata 中自动读取配置信息，支持的 metadata 键包括：
+The framework supports automatically reading configuration information from ONNX model metadata. Supported metadata keys include:
 
-- `joint_names`: 关节名称列表（逗号分隔）
-- `default_joint_pos`: 默认关节位置（逗号分隔的浮点数）
-- `joint_stiffness`: 关节刚度Kp（逗号分隔的浮点数）
-- `joint_damping`: 关节阻尼Kd（逗号分隔的浮点数）
-- `action_scale`: 动作缩放因子（逗号分隔的浮点数）
-- `num_actions`: 动作维度
-- `num_obs`: 观测维度
+- `joint_names`: List of joint names (comma-separated)
+- `default_joint_pos`: Default joint positions (comma-separated floating point numbers)
+- `joint_stiffness`: Joint stiffness Kp (comma-separated floating point numbers)
+- `joint_damping`: Joint damping Kd (comma-separated floating point numbers)
+- `action_scale`: Action scale factors (comma-separated floating point numbers)
+- `num_actions`: Action dimension
+- `num_obs`: Observation dimension
 
-## MuJoCo仿真器
+## MuJoCo Simulator
 
-`dance_algorithm/mujoco_simulator.py` 提供了一个 MuJoCo 仿真器，可用于算法验证和调试：
+`dance_algorithm/mujoco_simulator.py` provides a MuJoCo simulator that can be used for algorithm verification and debugging:
 
 ```bash
 cd dance_algorithm
 python3 mujoco_simulator.py --xml path/to/scene.xml [--headless]
 ```
 
-仿真器通过 LCM 与算法通信，模拟真实机器人的状态发布和命令接收。
+The simulator communicates with the algorithm via LCM, simulating the real robot's state publishing and command reception.
 
-## 依赖要求
+## Requirements
 
 - Python 3.6+
 - numpy
 - pyyaml
 - lcm (Python bindings)
-- onnxruntime (如果使用ONNX模型)
-- torch (如果使用PyTorch模型)
-- onnx (如果从metadata读取配置)
-- mujoco (如果使用MuJoCo仿真器)
+- onnxruntime (if using ONNX models)
+- torch (if using PyTorch models)
+- onnx (if reading configuration from metadata)
+- mujoco (if using MuJoCo simulator)
 
-## 注意事项
+## Notes
 
-1. **机器人ID匹配**：确保配置文件中的 `robot_id` 与状态机配置一致
-2. **LCM通道**：确保状态通道和命令通道与状态机配置一致
-3. **关节顺序**：确保模型输出的关节顺序与机器人关节顺序匹配
-4. **执行频率**：建议策略推理频率设置为 50Hz（20ms周期），与状态机控制频率一致
-5. **LCM发送频率**：固定为 500Hz，由基类内部管理
-6. **线程安全**：`process_action` 中更新 `latest_command` 时需要使用 `self.latest_command_lock`
-7. **动作缓冲区**：访问 `self.action_buffer` 时需要使用 `self.action_buffer_lock`
-8. **安全**：算法执行前确保机器人处于安全状态，建议先进行仿真测试
+1. **Robot ID Matching**: Ensure the `robot_id` in the configuration file matches the state machine configuration
+2. **LCM Channels**: Ensure state and command channels match the state machine configuration
+3. **Joint Order**: Ensure the joint order output by the model matches the robot's joint order
+4. **Execution Frequency**: Recommended policy inference frequency is 50Hz (20ms period), matching the state machine control frequency
+5. **LCM Send Frequency**: Fixed at 500Hz, managed internally by the base class
+6. **Thread Safety**: Use `self.latest_command_lock` when updating `latest_command` in `process_action`
+7. **Action Buffer**: Use `self.action_buffer_lock` when accessing `self.action_buffer`
+8. **Safety**: Ensure the robot is in a safe state before algorithm execution, recommend simulation testing first
 
-## 示例算法：DanceAlgorithm
+## Example Algorithm: DanceAlgorithm
 
-跳舞算法实现展示了如何使用框架：
+The dancing algorithm implementation demonstrates how to use the framework:
 
-- 从数据集（`.npz` 文件）加载动作序列
-- 使用 ONNX 模型（`HumanActornet.onnx`）进行动作生成
-- 支持 yaw 对齐（motion初始yaw与robot初始yaw对齐）
-- 完整的观测计算包括 anchor orientation
+- Load motion sequences from dataset (`.npz` files)
+- Use ONNX model (`HumanActornet.onnx`) for action generation
+- Support yaw alignment (align motion initial yaw with robot initial yaw)
+- Complete observation computation including anchor orientation
 
-使用方法：
+Usage:
 
 ```bash
 cd dance_algorithm
 python3 run_algorithm.py --config config.yaml
 ```
 
-## LCM接口使用（直接使用）
+## LCM Interface Usage (Direct Usage)
 
-如果需要直接使用 LCM 接口（不继承基类），可以这样使用：
+If you need to use the LCM interface directly (without inheriting the base class), you can use it like this:
 
 ```python
 from lcm_interface import LCMInterface
@@ -343,13 +347,13 @@ lcm = LCMInterface(config)
 lcm.register_state_callback(your_callback_function)
 lcm.start()
 
-# 在主循环中处理消息
+# Process messages in main loop
 while True:
-    lcm.handle(10)  # 100ms超时
+    lcm.handle(10)  # 100ms timeout
     state = lcm.get_latest_state()
-    # 处理状态...
+    # Process state...
     
-    # 发送命令
+    # Send command
     lcm.send_command(
         enable_development_mode=True,
         is_rl_mode=True,
@@ -359,19 +363,19 @@ while True:
     )
 ```
 
-## 架构说明
+## Architecture
 
-本框架采用双线程架构：
+This framework uses a dual-thread architecture:
 
-1. **主线程**：处理 LCM 消息接收
-2. **策略推理线程**：按配置频率（如50Hz）运行策略推理
-3. **LCM发送线程**：固定500Hz频率发送控制命令
+1. **Main Thread**: Handles LCM message reception
+2. **Policy Inference Thread**: Runs policy inference at configured frequency (e.g., 50Hz)
+3. **LCM Send Thread**: Sends control commands at fixed 500Hz frequency
 
-这种架构确保了：
-- 策略推理的实时性（50Hz）
-- 控制命令的高频发送（500Hz）
-- 线程安全的状态访问
+This architecture ensures:
+- Real-time policy inference (50Hz)
+- High-frequency control command sending (500Hz)
+- Thread-safe state access
 
-## 许可证
+## License
 
-请参考项目根目录的许可证文件。
+Please refer to the license file in the project root directory.
