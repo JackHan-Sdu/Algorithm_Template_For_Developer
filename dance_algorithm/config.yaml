@@ -29,7 +29,7 @@ model_params:
 
 # LCM配置
 lcm:
-  url: ""
+  url: "udpm://239.255.76.67:7667?ttl=255"
   state_channel: "E3_development_state"
   command_channel: "E3_development_command"
   robot_id: "E3"
